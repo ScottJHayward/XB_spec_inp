@@ -1,32 +1,26 @@
-function [date, bw, Dat, f] = specsum(fname,shift);
+function [date, bw, Dat, f] = specsum(fname,line,shift);
 %for DATA_spec, SKIP=1, otherwise, SKIP=0    
- 
+%line tells which line to read 
+
 %bw=bandwidth
 %Dat=data from file of interest... could be Energy, A1, R1, etc. 
 %f=frequency
 
 fid=fopen(fname,'r');
-fgetl(fid);
 
-% starts at Hour zero (AKA... now)
-% 
-%%%change later to incorporate 24 hours...
+%skip unwanted lines
+if line>1
+    for i=1:line-1
+        fgetl(fid);
+    end
+end
+fgetl(fid);  
 
-    
+%read in Data
 H=str2num(fgetl(fid));
-
 
 %[year, month, day, hour, minute]
 date=H(1:5);
-
-
-%DATA_spec file is different, shift is equal to 6 in that instance. otherwise, it is 5. 
-% shift=-1;
-% if H(1,6)==9.999
-% shift=0;
-% end
-
-
 
 %only choosing 25 bands for now, can change to 46 later...
 skip=5;
@@ -40,8 +34,6 @@ for i=1:1:35
     
 end
 
-
 fclose all
-
 
 end

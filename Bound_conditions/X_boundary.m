@@ -11,6 +11,23 @@ clc;clear all; fclose all
 %H=E./bw./1030./9.8*3.28084^2;
 H=sqrt(4*E./(bw.*(1030*9.8)));
 
+Rot=89;
+len=2500;
+numpts=100;
+%project the boundary to find x and y locations
+xlen=len*sind(Rot);
+ylen=len*cosd(Rot);
+%initialize spatial grid
+x=linspace(0,xlen,numpts);
+y=linspace(0,ylen,numpts);
+%identity matris is the grid point locations
+I=eye(numpts);
+boundary=find(I==1);
+
+%time inputs
+dt=1;
+ttot=200;
+
 % figure
 % subplot(3,1,1)
 % plot(H)
@@ -19,38 +36,33 @@ H=sqrt(4*E./(bw.*(1030*9.8)));
 % subplot(3,1,3)
 % plot(f)
 
-t=linspace(1,1000,10000);
+times=0:dt:ttot;
 sig=2*pi.*f;
 
 k=4*pi^2.*f.^2./9.8;
 
-
-eta=zeros(length(f),10000);
-
-for i=1:1:length(f)
-
-eta(i,:)=H(i)./2.*cos(-sig(i).*t);
-
-end
-
-eta2=ones(1,length(t));
-
-for i=1:1:length(f)
-
-eta2(:)=eta2+eta(i,:);
-
-end
+% 
+% eta=zeros(length(f),10000);
+% 
+% for i=1:1:length(f)
+% 
+% eta(i,:)=H(i)./2.*cos(-sig(i).*t);
+% 
+% end
+% 
+% eta2=ones(1,length(t));
+% 
+% for i=1:1:length(f)
+% 
+% eta2(:)=eta2+eta(i,:);
+% 
+% end
 % figure
 % plot(eta2)
 
 %find direction
 Dir=((A1(1,:)+A2(1,:))./2);
 nums=find(Dir ~= -999);
-
-
-%initialize spatial grid
-x=-1000:15:1000;
-y=-1000:15:1000;
 
 [xx yy]=meshgrid(x,y);
 
@@ -72,8 +84,8 @@ ky(zzy)=0;
 sig=(2*pi).*f;
 
 %define t and number of frequancies
-times=-50:.5:50;
-freqs=[linspace(0.1,nums(length(nums)),.5*length(times)),nums(length(nums))*ones(1,length(times))];
+%freqs=[linspace(0.1,nums(length(nums)),.5*length(times)),nums(length(nums))*ones(1,length(times))];
+freqs=linspace(0.1,nums(length(nums)));
 it=1;
 
 
@@ -85,13 +97,16 @@ it=1;
 % set(gca,'nextplot','replacechildren');
 % set(gcf,'Renderer','zbuffer');
 
+rst=randn*100
 
-for t=1:100
+for t=1:length(times)
     
+    hold off
     FF=ceil(freqs(it));
     FF=length(nums-3);
 for i=1:FF
-    eta2d(:,:,i)=H(i)/2.*(cos(kx(i)*xx+ky(i)*yy+sig(i).*t));
+
+    eta2d(:,:,i)=H(i)/2.*(cos(kx(i)*xx+ky(i)*yy+sig(i).*times(t)));
     
 end
 
@@ -99,40 +114,15 @@ end
 eta=sum(eta2d,3);
 
 % waterfall(x,y,eta')
-surf(x,y,eta)
-figure(2)
-
-plot(eta(1,:))
-% colormap water
-% alpha(.8)
-% 
-% zlim([-5 5])
-% 
-% set(gca,'XTickLabel','','YTickLabel','','ZTickLabel','')
-
-% h1=xlabel('W<------------>E');
-% set(h1,'rotation',8)%'fontsize',15)
-% h2=ylabel('N<------------>S');
-% set(h2,'rotation',-65)%,'fontsize',15)
-% 
-%title('Sea Surface Conditions')
-
-% view([0 60])
-%view([-15 50])
-pause(.1)
-
-
-fname=['./WaveGif/frame',num2str(it),'.png'];
-%saveas(gcf,fname)
-
-it=it+1;
-
-% 
-% frame = getframe(gcf); %(can be getframe(gcf) to include the entire figure)
-% writeVideo(writerObj,frame);
-% 
-
-
+pcolor(x,y,eta);zlim([-5 10]);axis equal;shading flat;caxis([-3 3]);hold on
+plot(xx(boundary),yy(boundary),'LineWidth',2);
+BC(:,t)=eta(boundary);pause(.001)
 end
 
-% close(writerObj)
+%%
+figure
+Lbc=linspace(0,len,numpts);
+waterfall(Lbc,times(1:t),BC');colormap gray;caxis([0 10000]);view(-25,80)
+xlabel('distance(m)')
+ylabel('time (s)')
+
